@@ -234,3 +234,21 @@ plotConfusionMatrix(confMatrix,classes=classNames)
 plt.show()
 
 
+#Plotting ROC Curve, I've never done this.
+
+model = LogisticRegression(C=100, penalty='l1')
+yUPredScore = model.fit(xUTrain,yUTrain.values.ravel()).decision_function(xUTest.values)
+
+fpr, tpr, thresholds = roc_curve(yUTest.values.ravel(),yUPredScore)
+roc_auc = auc(fpr,tpr)
+#ROC Curve plot
+
+#plt.title('Recieve Operating Characteristic Curve')
+plt.plot(fpr,tpr,'b',label='AUC = %0.2f'% roc_auc)
+plt.legend(loc='lower right')
+plt.plot([0,1],[0,1], 'g--')
+plt.xlim([-0.1,1.0])
+plt.ylim([-0.1,1.01])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()

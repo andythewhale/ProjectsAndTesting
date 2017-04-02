@@ -110,6 +110,127 @@ print("undersampled Total x: ", len(xUTrain)+len(xUTest))
 print("undersampled Total y: ",len(yUTrain)+len(yUTest))
 print(" ")
 
+#Logistic Regression and Classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import KFold
+from sklearn.metrics import confusion_matrix, precision_recall_curve,auc,roc_auc_score,roc_curve,recall_score,classification_report
 
+
+#Can't seem to get this next block of code to work:
+
+"""
+
+def getKFoldScores(xData,yData):
+    fold = KFold(len(yData),shuffle=False) 
+
+
+    cParamRange = [0.01,0.1,1,10,100]
+
+    results = pd.DataFrame(index = range(len(cParamRange),2), columns = ['cParam','Mean Recall Score'])
+    results['cParam'] = cParamRange
+
+   
+    i = 0
+    for cParam in cParamRange:
+        print('***')
+        print('cParam: ', cParam)
+        print('***')
+        print('')
+
+        recallAccuracies = []
+        for iteration, indices in enumerate(fold,start=1):
+
+          
+            model = LogisticRegression(C = cParam, penalty = 'l1')
+
+
+            
+            model.fit(xData.iloc[indices[0],:],yData.iloc[indices[0],:].values.ravel())
+
+            
+            yUPred = model.predict(xData.iloc[indices[1],:].values)
+
+
+            recallAccuracy = recall_score(y_train_data.iloc[indices[1],:].values,y_pred_undersample)
+            recallAccuracies.append(recall_acc)
+            print('Iteration ', iteration,'; Recall Score = ', recallAccuracy)
+
+       
+        results.ix[j,'Mean Recall Score'] = np.mean(recallAccuracies)
+        i += 1
+        print('')
+        print('Mean Recall Score ', np.mean(recallAccuracies))
+        print('')
+
+    bestC = results.loc[results['Mean Recall Score'].idxmax()]['cParam']
+    
+  
+    print('***')
+    print('Best model to choose from cross validation is with C parameter = ', best_c)
+    print('***')
+    
+    return bestC
+           
+
+bestC = getKFoldScores(xUTrain,yUTrain)
+
+"""
+
+#Confusion Matrix function:
+
+import itertools
+def plotConfusionMatrix (cm, classes, normalize=False, title='Confusion Matrix', cmap=plt.cm.Greens):
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.colorbar()
+    tick_marks=np.arange(len(classes))
+    plt.xticks(tick_marks,classes,rotation=0)
+    plt.yticks(tick_marks,classes)
+    
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    else:
+        1
+        
+    thresh=cm.max()/2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j,i, cm[i,j],horizontalalignment='center',color='white' if cm[i,j] > thresh else 'black')
+        
+    plt.tight_layout()
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted label')
+
+
+#Confusion Matrix on undersamples data:
+
+model = LogisticRegression(C=100,penalty='l1')
+model.fit(xUTrain,yUTrain.values.ravel())
+yUPred = model.predict(xUTest.values)
+
+confMatrix = confusion_matrix(yUTest,yUPred)
+np.set_printoptions(precision=2)
+
+print('Confusion Matrix:', confMatrix[1,1]/(confMatrix[1,0]+confMatrix[1,1]))
+
+classNames=[0,1]
+plt.figure()
+plotConfusionMatrix(confMatrix,classes=classNames)
+plt.show()
+
+
+#Confusion Matrix on big data set using undersampled data:
+
+model = LogisticRegression(C=10,penalty='l1')
+model.fit(xUTrain,yUTrain.values.ravel())
+yPred = model.predict(xTest.values)
+
+confMatrix = confusion_matrix(yTest,yPred)
+np.set_printoptions(precision=2)
+
+print('Confusion Matrix:', confMatrix[1,1]/(confMatrix[1,0]+confMatrix[1,1]))
+
+classNames=[0,1]
+plt.figure()
+plotConfusionMatrix(confMatrix,classes=classNames)
+plt.show()
 
 

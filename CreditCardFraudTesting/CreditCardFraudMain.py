@@ -252,3 +252,73 @@ plt.ylim([-0.1,1.01])
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.show()
+
+#Application of undersampled model to whole data set
+
+model = LogisticRegression(C=10,penalty='l1')
+model.fit(xTrain,yTrain.values.ravel())
+yUPred = model.predict(xTest.values)
+
+confMatrix = confusion_matrix(yTest,yUPred)
+np.set_printoptions(precision=2)
+
+print('Confusion Matrix:', confMatrix[1,1]/(confMatrix[1,0]+confMatrix[1,1]))
+
+classNames=[0,1]
+plt.figure()
+plotConfusionMatrix(confMatrix,classes=classNames)
+plt.show()
+
+#Figuring out the best threshold to use
+
+model = LogisticRegression(C=0.1, penalty='l1')
+model.fit(xUTrain, yUTrain.values.ravel())
+yUPredProba = model.predict_proba(xUTest.values)
+
+thresholds = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+
+plt.figure(figsize = (10,10))
+
+i=1
+for j in thresholds:
+    yTestPredHighRecall = yUPredProba[:,1] > j
+    
+    plt.subplot(3,3,i)
+    i+=1
+    
+    confMatrix = confusion_matrix(yUTest,yTestPredHighRecall)
+    np.set_printoptions(precision=2)
+    
+    print('Recall Metric in Test Data: ', confMatrix[1,1]/(confMatrix[1,0]+confMatrix[1,1]))
+    
+    classNames=[0,1]
+    plotConfusionMatrix(confMatrix, classes=classNames, title='Threshold >= %s'%i)
+
+#Just a quick checkiout of our precision recall trade off:
+
+from itertools import cycle
+
+model = LogisticRegression(C=0.1, penalty='l1')
+model.fit(xUTrain,yUTrain.values.ravel())
+yUPredProba = model.predict_proba(xUTest.values)
+
+thresholds = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+colors = cycle(['navy', 'turquoise', 'darkorange', 'cornflowerblue', 'teal', 'red', 'yellow', 'green', 'blue','black'])
+
+plt.figure(figsize=(5,5))
+
+j = 1
+for i,color in zip(thresholds,colors):
+    yTestPredProba = yUPredProba[:,1] > i
+    
+    precision, recall, thresholds = precision_recall_curve(yUTest,yTestPredProba)
+    
+    # Plot Precision-Recall curve
+    plt.plot(recall, precision, color=color,
+                 label='Threshold: %s'%i)
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    #plt.title('Precision-Recall example')
+    plt.legend(loc="lower left")

@@ -1,0 +1,121 @@
+#This is a follow allong for the google tutorial on PDE's for the tensorflow library
+#Apparently tensorflow is not just for Machine Learning. It can also be used for simulation
+#In this example we will be simulating the surface of a square pond as rainfall drops onto it.
+
+#Main simulation imports:
+import tensorflow as tf
+import numpy as np
+
+#Main visualization imports:
+import PIL.Image
+from io import BytesIO
+from IPython.display import clear_output, Image, display
+
+#This function descibes the state of the pond's surface. It is an image:
+def DisplayArray(a, fmt = 'jpeg', rng=[0,1]):
+	#This is how we display an array as an image:
+	a = (a - rng[0])/float(rng[1] - rng[0])*255
+	a = np.uint8(np.clip(a, 0, 255))
+	f = BytesIO()
+	PIL.Image.fromarray(a).save(f,fmt)
+	clear_output(wait = True)
+	display(Image(data=f.getvalue()))
+
+#We are going ti implement this as an interactive session again.
+#Google says something about doing it as a regular session.
+#But that's only if we're doing this as an executable py file.
+#Ihave never implemented a regular session of TensorFlow so idk what they mean yet.
+
+#This is how we implement an interactive session in tensorflow:
+sess = tf.InteractiveSession()
+
+#Defining computation of convenience functions
+#What is a convenience function?
+#Definition:
+"""
+A convenience function is a non-essential sub-routine in a programming library or framework.
+-But this is meaningless, everything is a convenience function beyond defining 1's and 0's.
+-A convenience function just makes things easier by building on earlier functions that are
+already defined in some way shape or form. So when I call a function I just defiend that's
+basically a convenience function.
+"""
+#So, we're defining functions that will make the rest of what we're going to do easy
+
+def make_kernel(a):
+	#Transformation of a 2D array into a convlution kernal...
+	#But what's a convolution kernel?
+	#So it has many names, kernel, convolution matrix, mask, etc...
+	#It's basically just a small matrix it's big in image processing.
+	#Treatment of one matrix by another. The another is a kernel.
+	#The whole process revolves around adding each element of the image to its local neighbors.
+	a = np.asarray(a)
+	a = a.reshape(list(a.shape) + [1,1])
+	return tf.constant(a, dtype = 1)
+
+def simple_conv(x, k):
+	#A 2 dimensional convolutional operation
+	x = tf.expand_dims(tf.expand_dims(x, 0), -1)
+	y = tf.nn.depthwise_conv2d(x,k, [1, 1, 1, 1], padding= 'SAME')
+	return y[0, :, :, 0]
+
+def laplace(x):
+	#Computing the laplacian of an array
+	laplace_k = make_kernel([[0.5, 1.0, 0.5],
+							 [1.0, -6., 1.0],
+							 [0.5, 1.0, 0.5]])
+	return simple_conv(x, laplace_k)
+
+#Define the PDE
+N=500
+
+#Pond creation and central radial points.
+
+#Initial conditions: rain hitting a pond, all at the same time
+#All to 0
+u_init = np.zeros([N, N], dtype = np.float32)
+ut_init = np.zeros([N, N], dtype=np.float32)
+
+#Rain drops at random points:
+for i in range(13):
+	a, b = np.random.randint(0, N, 2)
+	u_init[a, b] = np.random.uniform()
+
+DisplayArray(u_init, rng = [-0.1, 0.1])
+
+#Run everything above and you will get a simulation of a square pond.
+#The pond will be hit at random points with random "raindrops" all at the same time
+
+#Parameters are as follows:
+
+#eps is going to represent our time resolution
+#damping is going to represent our wave damping
+
+eps = tf.placeholder(tf.float32, shape=())
+damping = tf.placeholder(tf.float32, shape=())
+
+#Variables for simulation state:
+U  = tf.Variable(u_init)
+Ut = tf.Variable(ut_init)
+
+#Discretized PDE update rules:
+U_ = U + eps * Ut
+Ut_ = Ut + eps * (laplace(U) - damping * Ut)
+
+#Operations updating the state of the PDE
+#This is because PDE's a represented by points in time
+step = tf.group(
+  U.assign(U_),
+  Ut.assign(Ut_))
+
+#So we're going to run time using a loop
+
+#Initial conditions:
+tf.global_variables_initializer().run()
+
+#Run some number of steps for the PDE to see what it looks like at that point in time:
+for i in range(1000):
+  # Step simulation
+  step.run({eps: 0.03, damping: 0.04})
+  DisplayArray(U.eval(), rng=[-0.1, 0.1])
+
+

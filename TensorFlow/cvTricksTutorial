@@ -175,3 +175,24 @@ with tf.Session() as sess:
 		for(x, y) in zip(trainX, trainY):
 			sess.run(train_op, feed_dict = {X: x, Y: y})
 	print(sess.run(w))
+
+#The first thing that has to be done is to call init inside session.run()
+#We run train_op by feeding feed_dict
+#We print the value of w again inside sess.run()
+
+#try a new sess printing w:
+
+with tf.Session() as sess:
+	sess.run(init)
+	print(sess.run(w))
+
+#It prints 0.0
+#This is because all of the operations that were present in the previous case are gone.
+#Tensorflow operates on a case to case basis. Unless you explicitly export data from
+#your previous case, they will not be saved.
+
+#This concludes part 1 of the tutorial.
+
+
+
+

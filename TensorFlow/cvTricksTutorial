@@ -1,0 +1,177 @@
+#This is an interpretation of a tensorflow tutotial. 
+#This tutorial was created/assembled by Ankit Sachen, all credit to him.
+#Andy Miller implemented this copy
+"""
+-Tensorflow is a library for numerical computation
+-Data flows through the graph
+-Data in tensorflow is represented by n-dimensional arrays called Tensors
+-Graphs are made out of data and mathematical operations
+-Nodes on the graph represent numerical operations
+-Edges of the graph represent the Tensors that flow between opertions
+-In Tensorflow you first need to create a scaffold of what you're trying to create
+-While creating the graph, variables don't have ay value
+-When you have created the complete graph, you must run it inside a session
+-When running it inside a session, variables then have value
+"""
+
+#Import tensorflow
+import tensorflow as tf
+
+# I GRAPHS
+
+#Graph is the backbone of tensorflow
+#Every computation, operation, and varible reside on the graph
+#Everything that happens in the code resides on a graph provided by tensorflow
+
+#Access to graph:
+graph = tf.get_default_graph()
+
+#List of all operations:
+graph.get_operations()
+#This gives us empty brackets, because we haven't given tensorflow any operations yet
+
+#This is for printing the name of the operations in the graph
+for op in graph.get_operations(): print(op.name)
+#It's still empty though... Because we haven't assigned any operations
+
+#It is possible to create multiple graphs
+
+# II SESSIONS
+
+#A graph is used to assign operations, but the operations run in a session
+#A graph is the blueprint or plan for tensorflow
+#Sessions are the actual construction site where stuff takes place
+#Graph only defines the computations or, builds the blueprint
+#But there are no variables or values, unless we run the graph within a session
+
+sess = tf.Session()
+#Code goes here
+sess.close()
+
+#You always need to close your session, alternatively you could run it like so:
+with tf.Session() as sess:
+	#Code goes here
+	sess.run(f)
+
+#The tutorial recommends using the with block. But it doesn't matter
+
+# III TENSORS
+
+#Right so, tensorflow holds data in tensors
+#Tensors are multdimensional arrays, they are essentially 3D blocks
+
+#Constants, values that never change
+a = tf.constant(1.0)
+a
+#It doesn't do anything unless it's in a session
+
+#Let's use the with block to run it:
+with tf.Session() as sess:
+	print(sess.run(a))
+#Amazing
+
+#Variables, tensors and act like variables, they can change
+b = tf.Variable(2.0, name = 'test_variable')
+b
+#Still need a session to do stuff with these guys I suppose
+
+#Variables need to be initialized seperately by an initialization operation
+#This is otherwise known as an "init op"
+init_op = tf.global_variables_initializer()
+
+#Then we can do our session run:
+with tf.Session() as sess:
+	sess.run(init_op)
+	print(sess.run(b))
+#Just outstanding
+
+#Also now we'll actually be getting an output if we do stuff with the graph
+graph = tf.get_default_graph()
+for op in graph.get_operations():
+	print(op.name)
+#Hooray for things happening
+
+#Placeholders are tensors which are waiting to be intialized/ fed values
+#Placeholders are used for training data which is fed when the code runs in session
+#What is being fed to a placeholder is called a feed_dict
+
+c = tf.placeholder("float")
+d = tf.placeholder("float")
+y = tf.multiply(c, d)
+
+#Generally, feed_dict is loaded from a training data folder this is simplified
+feed_dict = {c:3, d:4}
+with tf.Session() as sess:
+	print(sess.run(y, feed_dict))
+#Such amazing, wow
+
+# IV DEVICES
+
+#Tensorflow has architecture optimization optionns
+#You can utilize parrellel processing and multiple GPU's/CPU's etc.
+
+#Edges --> Nodes --> Session --> Multiple Processing Units
+
+#PARTE DOS
+
+#We're going to run a linear regression using tensorflow
+
+#Random normal distribution:
+w = tf.Variable(tf.random_normal([784,10], stdev = 0.01))
+#So this operation creates a random normal distribution of size 784 x 10
+#The values stdev is is 0.01
+
+#Reduce mean, calculates the mean of an array:
+b = tf.Variable([10,20,30,40,50,60], name = 't')
+with tf.Session() as sess:
+	sess.run(tf.global_variables_initializer()) #note to use global here, the other initializer is deprecated
+	sess.run(tf.reduce_mean(b))
+
+#ArgMax in tensorflow
+#Gives you a specified value along a specified axis
+a = [[0.1, 0.2, 0.3], [20, 2, 3]]
+b = tf.Variable(a, name = 'b')
+with tf.Session() as sess:
+	sess.run(tf.global_variables_initializer())
+	print(sess.run(tf.argmax(b,1)))
+#This will print [2,0] which is the maximum value in row A.
+
+#Linear regression example:
+
+#Create 100 data points and fit a line to the data points
+import tensorflow as tf
+import numpy as np
+
+#trainX: values between -1 and 1
+#trainY: values x3 with random
+trainX = np.linspace(-1, 1, 101)
+trainY = 3 * trainX + np.random.randn(*trainX.shape) * 0.33
+
+#Placeholders
+X = tf.placeholder("float")
+Y = tf.placeholder("float")
+
+#Linear regression y_model = w * x
+#We're going to initialize this from w to 0
+#Cost is defined as a square of a Y-y_model (?)
+#Tensorflow uses a lot of optimizers to calculate and update gradients
+#The gradients are updated for each iteration
+#We do our best to minimize the cost of each operation
+#We're going to use GradientDescentOptimizer to minimize cost
+#The learning rate we're going to use is 0.01
+
+w = tf.Variable(0.0, name = 'weights')
+y_model = tf.multiply(X, w)
+
+cost = (tf.pow(Y-y_model, 2))
+train_op = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+
+#Training the regression:
+init = tf.global_variables_initializer()
+
+with tf.Session() as sess:
+	sess.run(init)
+	for i in range(100):
+		for(x, y) in zip(trainX, trainY):
+			sess.run(train_op, feed_dict = {X: x, Y: y})
+	print(sess.run(w))

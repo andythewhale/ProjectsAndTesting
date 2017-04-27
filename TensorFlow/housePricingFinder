@@ -1,0 +1,72 @@
+#Tensorflow example for guessing best housing prices
+#This is a good example of good neural network use for NN's
+
+import pandas as pd 
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+
+#Load our data data loading
+df = pd.read_csv('data.csv')
+df = df.drop(['index', 'price', 'sq_price'], axis =1) #don't care about these
+df = df[0:13]
+
+#Add labels to our data, general data cleaning
+df.loc[:, ('y1')] = [1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1]
+df.loc[:, ('y2')] = df['y1'] == 0
+df.loc[:, ('y2')] = df['y2'].astype(int)
+
+inputX = df.loc[:, ['area', 'bathrooms']].as_matrix()
+inputY = df.loc[:, ['y1', 'y2']].as_matrix()
+
+#Hyperparameters
+learning_rate = 0.0000013
+training_epochs = 1313
+display_step = 58
+n_samples = inputY.size
+
+#Create graph & Tensorflow environment:
+x = tf.placeholder(tf.float32, [None, 2]) # 2 is for 2 features
+
+#Need our weights:
+w = tf.Variable(tf.zeros([2,2])) 
+
+#Need our biases:
+b = tf.Variable(tf.zeros([2]))
+
+#Ok we need to multiply our weights by our inputs:
+y_values = tf.add(tf.matmul(x, w), b)
+
+#Normalize everything and add probabilities with softmax:
+y = tf.nn.softmax(y_values)
+
+#Add matrix labels placeholder
+y_ = tf.placeholder(tf.float32, [None, 2])
+
+#Define our cost function:
+cost = tf.reduce_sum(tf.pow(y_ - y, 2))/(2*n_samples)
+
+#Add optimizer
+optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+
+#Now we can run our graph in a session:
+init = tf.global_variables_initializer()
+sess = tf.Session()
+sess.run(init)
+
+#Training
+for i in range(training_epochs):  
+    sess.run(optimizer, feed_dict={x: inputX, y_: inputY})
+
+    if (i) % display_step == 0:
+        cc = sess.run(cost, feed_dict={x: inputX, y_:inputY})
+        print ("training step: ", '%04d' % (i), "cost: ", "{:.9f}".format(cc))
+
+print ("optimization complete")
+training_cost = sess.run(cost, feed_dict={x: inputX, y_: inputY})
+print ("training cost: ", training_cost, "w: ", sess.run(w), "b: ", sess.run(b), '\n')
+
+#Let's check out how bad it is:
+sess.run(y, feed_dict={x: inputX })
+
+#Pretty bad.

@@ -1,0 +1,82 @@
+"""
+This program is meant to be used with the IMDB dataset
+from Kaggle.com, this program's goal is to guess if the
+sentiment from a movie review is positve or negative,
+I'd like to thank ||source|| for the guide. 
+Andy Miller 5/1/2017, happy May Day.
+"""
+
+#So we're going to use Random forest as our model base:
+import os
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from KaggleWordVectorizerUtility import KaggleWordVectorizerUtility
+import pandas as pd
+import nltk
+
+if __name__ == '__main__':
+	#Let's read the data
+	train = pd.read_csv(os.path.join(os.path.dirname(__file__), 
+		'data', 
+		'labeledTrainData.tsv'), header = 0, delimiter = '\t',
+		quoting = 3)
+
+	test = pd.read_csv(os.path.join(os.path.dirname(__file__),
+		'data',
+		'testData.tsv'), header = 0, delimiter = '\t',
+		quoting = 3)
+
+	print('La premera critica es... ')
+	print(train['review'][0])
+	raw_input('Presione intro para continuar...')
+
+
+	#We must clean the training data.
+	print('Descargar los conjuntos de datos')
+	nltk.download()
+	clean_train_reviews = []
+
+	#We're going to clean and the training data of stopwords.
+	print('Cleaning and parsing the training set.\n')
+	for i in xrange (0, len(train['review'])):
+		clean_train_reviews.append(" ".join(
+			KaggleWordVectorizerUtility.review_to_wordlist(train['review'][i], True)))
+
+	#We must also create a bag of words
+	print('Haciendo ka bolsa de palabras...\n')
+	vectorizer = CountVectorizer(analyzer = 'word',
+		tokenizer = None,
+		preprocessor = None,
+		stop_words = None,
+		max_features = 5900)
+
+	#Fitting the data, training the data
+	train_data_features = vectorizer.fit_transform(clean_train_reviews)
+	train_data_features = train_data_features.toarray()
+
+	#Classifier creation, it's a random forest
+	#Remember, it focuses on statistical possibility
+	#Series of lines on a classification plane etc.
+	print('Entrenamiento del clasifacador de bosque al azar...\n')
+	forest = RandomForestClassifier(n_estimators = 100)
+	forest = forest.fit(train_data_features, train['sentiment'])
+	clean_test_reviews = []
+
+	#We must format the testing data
+	print('Cleaning and parsing test dat\n')
+	for i in xrange(0, len(test['review'])):
+		clean_test_reviews.append(' '.join(
+			KaggleWordVectorizerUtility.review_to_wordlist(test['review'][i], True)))
+	test_data_features = vectorizer.transform(clean_test_reviews)
+	test_data_features = test_data_features.toarray()
+
+	#Predition of th reviews
+	print('Prediccion de etiquetas...\n')
+	result = forest.predict(test_data_features)
+	output = pd.DataFrame(data = {'id': test['id'], 'sentiment':result})
+	output.to_csv(os.path.join(os.path.dirname(__file__),
+		'data', 'BagOfWordsModel.csv'), index = False, quoting = 3)
+	print('Results present in BagOfWordsModel')
+
+
+

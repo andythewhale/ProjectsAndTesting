@@ -24,3 +24,7 @@ tpot.fit(eMagClean.drop('Class', axis = 1).loc[training_indices].values, tele.lo
 
 #Scoring
 score = tpot.score(eMagClean.drop('Class', axis=1).loc[validation_indices].values, eMagClean.loc[validation_indices, 'Class'].values)
+
+tpot.export('answer.py')
+
+#so tpot gives us the best algorithm it can find and then it chooses some hyper parameters for us. Pretty awesome, but it uses a lot of memory so I might need to use webservices if I actually want to use genetic algorithms.

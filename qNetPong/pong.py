@@ -119,38 +119,40 @@ def moveStickDos(stickDosY, ballY):
 		retrun stickDosY
 
 #Let's make that game
-class __init__(self):
-	#Random initial direction for the ball:
-	num = random.randint(0,9):
-	#Keeping the score saved:
-	self.tally = 0
+class game:
+	
+	def __init__(self):
+		#Random initial direction for the ball:
+		num = random.randint(0,9):
+		#Keeping the score saved:
+		self.tally = 0
 
-	#Give initial positions to our sticks:
-	self.stickOneY = windowHeight / 2 - stickLength / 2
-	self.stickDosY = windowHeight / 2 - stickLength / 2
+		#Give initial positions to our sticks:
+		self.stickOneY = windowHeight / 2 - stickLength / 2
+		self.stickDosY = windowHeight / 2 - stickLength / 2
 
-	#Ball direction
-	self.ballYDir = 1
-	self.ballXDir = 1
-
-	#Start here:
-	self.ballX = windowWidth / 2 - ballWidth / 2
-
-	#Random ball movement:
-	if (0 < num < 4):
-		self.ballXDir = 1
+		#Ball direction
 		self.ballYDir = 1
-	if (4 <= num < 5):
-		self.ballXDir = -1
-		self.ballYDir = 1
-	if (5 <= num < 7):
 		self.ballXDir = 1
-		self.ballYDir = -1
-	if (7 <= num < 10):
-		self.ballXDir = -1
-		self.ballYDir = -1
-	num = random.randint(0,9)
-	self.ballY = num*(windowHeight - ballHeight) / 9
+
+		#Start here:
+		self.ballX = windowWidth / 2 - ballWidth / 2
+
+		#Random ball movement:
+		if (0 < num < 4):
+			self.ballXDir = 1
+			self.ballYDir = 1
+		if (4 <= num < 5):
+			self.ballXDir = -1
+			self.ballYDir = 1
+		if (5 <= num < 7):
+			self.ballXDir = 1
+			self.ballYDir = -1
+		if (7 <= num < 10):
+			self.ballXDir = -1
+			self.ballYDir = -1
+		num = random.randint(0,9)
+		self.ballY = num*(windowHeight - ballHeight) / 9
 
 #We need to see our current space in accordance with out frame rate:
 def getCurrentFrame(self):
